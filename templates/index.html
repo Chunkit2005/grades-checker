@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>学生成绩查询</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 全屏欢迎语 -->
+        <div id="welcome-section" class="welcome-section" style="display: none;">
+            <p id="welcomeMessage" class="welcome-message"></p>
+        </div>
+
+        <!-- 加载动画 -->
+        <div id="loading-spinner" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>正在查询成绩...</p>
+        </div>
+
+        <!-- 登录区 -->
+        <div id="login-section" class="login-card" style="display: none;">
+            <div class="login-header">
+                <h2 class="card-title">成绩查询</h2>
+                <p class="card-subtitle">使用你的学号和密码登录</p>
+            </div>
+            <div class="form-group">
+                <label for="username">学号</label>
+                <input type="text" id="username" placeholder="请输入学号" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password">
+            </div>
+            <div class="form-actions">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="saveLoginInfo" checked>
+                    <label for="saveLoginInfo">记住我</label>
+                </div>
+                <button id="manualLoginBtn" class="btn btn-primary">
+                    <span>登录</span>
+                    <i class="icon arrow-right"></i>
+                </button>
+            </div>
+            <p id="loginMessage" class="message"></p>
+        </div>
+
+        <!-- 成绩展示区 -->
+        <div id="grades-section" class="grades-display-section" style="display: none;">
+            <!-- 用户信息头 -->
+            <header class="user-profile-header">
+                <div class="avatar" id="userAvatar"></div>
+                <div class="user-info">
+                    <span id="userNameDisplay" class="user-name"></span>
+                    <span id="userIdDisplay" class="user-id"></span>
+                </div>
+                <div class="header-actions">
+                    <span id="greetingText" class="greeting"></span>
+                    <button id="logoutBtn" class="btn-logout"><i class="icon logout"></i></button>
+                </div>
+            </header>
+
+            <!-- [重构后] 数据概览网格 -->
+            <div class="summary-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon-wrapper pass"><i class="icon check"></i></div>
+                        <span class="stat-label">本学期通过</span>
+                    </div>
+                    <span class="stat-value" id="passedCoursesCount">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon-wrapper taken"><i class="icon book"></i></div>
+                        <span class="stat-label">成绩公布进度</span>
+                    </div>
+                    <span class="stat-value" id="takenCoursesCount">0/0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon-wrapper gpa"><i class="icon chart"></i></div>
+                        <span class="stat-label">平均学分绩</span>
+                    </div>
+                    <span class="stat-value" id="overallGpaValue">N/A</span>
+                </div>
+            </div>
+
+            <!-- 成绩列表输出容器 -->
+            <div id="gradesOutput" class="grades-list">
+                <!-- 成绩项将由 JS 动态插入 -->
+            </div>
+            
+            <!-- 页脚免责声明 -->
+            <footer class="app-footer">
+                <p>本站为第三方工具，查询结果仅供参考，不保证与官方数据实时同步。一切成绩信息请以学校官方教务系统为准。</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
