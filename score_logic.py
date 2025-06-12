@@ -1,4 +1,4 @@
-# score_logic.py (Complete Updated Version)
+# score_logic.py (Final Correct Version)
 import requests
 import hashlib
 import json
@@ -20,8 +20,9 @@ LOGIN_PAGE_URL = f"{BASE_URL}/login"
 LOGIN_URL = f"{BASE_URL}/j_spring_security_check"
 CAPTCHA_URL = f"{BASE_URL}/img/captcha.jpg"
 GRADES_INDEX_PAGE_URL = f"{BASE_URL}/student/integratedQuery/scoreQuery/thisTermScores/index"
+ALL_GRADES_INDEX_PAGE_URL = f"{BASE_URL}/student/integratedQuery/scoreQuery/coursePropertyScores/index"
 USER_INDEX_PAGE_URL = f"{BASE_URL}/index"
-ACADEMIC_INFO_URL = f"{BASE_URL}/main/academicInfo" # --- 获取GPA和课程数的API URL ---
+ACADEMIC_INFO_URL = f"{BASE_URL}/main/academicInfo"
 
 # --- MD5 加密函数（从JavaScript代码转换而来）---
 def hex_md5(s, ver=None):
@@ -171,24 +172,18 @@ def get_user_name(session_obj):
         print(f"[{time.strftime('%H:%M:%S')}] 解析用户姓名失败: {e}")
     return "同学"
 
-# --- [修改后] 获取学业信息函数 ---
+# --- 获取学业信息函数 ---
 def fetch_academic_info(session_obj, max_retries=5, delay=2):
-    """
-    通过API获取学业信息（GPA和课程总数），并加入重试机制以应对数据延迟。
-    """
     print(f"[{time.strftime('%H:%M:%S')}] 尝试从API {ACADEMIC_INFO_URL} 获取学业信息...")
     for attempt in range(max_retries):
         try:
             response = session_obj.get(ACADEMIC_INFO_URL, timeout=10)
             response.raise_for_status()
             data = response.json()
-            
             if isinstance(data, list) and data:
                 info = data[0]
                 gpa = info.get("gpa")
                 course_count = info.get("courseNum_bxqyxd")
-
-                # 只要获取到数据就返回，即使GPA是0，让后端决定如何处理
                 if gpa is not None and course_count is not None:
                     result = {"gpa": str(gpa), "course_count": int(course_count)}
                     print(f"[{time.strftime('%H:%M:%S')}] 成功获取学业信息: {result}")
@@ -197,36 +192,55 @@ def fetch_academic_info(session_obj, max_retries=5, delay=2):
                     print(f"[{time.strftime('%H:%M:%S')}] API返回数据不完整。将在 {delay} 秒后重试...")
             else:
                 print(f"[{time.strftime('%H:%M:%S')}] API返回数据格式不正确或为空。将在 {delay} 秒后重试...")
-
         except (requests.exceptions.RequestException, json.JSONDecodeError, IndexError, KeyError) as e:
             print(f"[{time.strftime('%H:%M:%S')}] 获取或解析学业信息失败: {e}")
-        
         if attempt < max_retries - 1:
             time.sleep(delay)
-            
     print(f"[{time.strftime('%H:%M:%S')}] 达到最大重试次数，未能获取到有效的学业信息。")
-    return {"gpa": "N/A", "course_count": 0} # 所有尝试失败后返回默认值
+    return {"gpa": "N/A", "course_count": 0}
 
-# --- 获取成绩数据函数 ---
+# --- 获取所有学期成绩数据 ---
+def fetch_all_grades(session):
+    print(f"[{time.strftime('%H:%M:%S')}] 正在访问历史成绩页面以获取动态API路径...")
+    try:
+        response_index_page = session.get(ALL_GRADES_INDEX_PAGE_URL, timeout=15)
+        response_index_page.raise_for_status()
+        match = re.search(r'scoreQuery/(.*?)/coursePropertyScores/callback', response_index_page.text)
+        if not match:
+            print(f"[{time.strftime('%H:%M:%S')}] 未能从历史成绩页面获取动态API路径段。")
+            return None
+        dynamic_path_segment = match.group(1)
+        dynamic_grades_api_url = f"{BASE_URL}/student/integratedQuery/scoreQuery/{dynamic_path_segment}/coursePropertyScores/callback"
+        print(f"[{time.strftime('%H:%M:%S')}] 构建动态历史成绩API URL: {dynamic_grades_api_url}")
+        headers = { "Referer": ALL_GRADES_INDEX_PAGE_URL, "X-Requested-With": "XMLHttpRequest" }
+        response_grades_data = session.get(dynamic_grades_api_url, headers=headers, timeout=15)
+        response_grades_data.raise_for_status()
+        grades_data = response_grades_data.json()
+        print(f"[{time.strftime('%H:%M:%S')}] 全部历史成绩获取成功。")
+        return grades_data
+    except Exception as e:
+        print(f"[{time.strftime('%H:%M:%S')}] 获取全部历史成绩时发生错误: {e}")
+        return None
+
+# --- 获取当前学期成绩数据函数 ---
 def fetch_grades(session):
-    print(f"[{time.strftime('%H:%M:%S')}] 正在访问成绩页面以获取动态API路径...")
+    print(f"[{time.strftime('%H:%M:%S')}] 正在访问当前学期成绩页面以获取动态API路径...")
     try:
         response_grades_page = session.get(GRADES_INDEX_PAGE_URL, timeout=15)
         response_grades_page.raise_for_status()
-        soup = BeautifulSoup(response_grades_page.text, 'html.parser')
         match = re.search(r'scoreQuery/(.*?)/thisTermScores/data', response_grades_page.text)
         if not match:
-            print(f"[{time.strftime('%H:%M:%S')}] 未能获取动态API路径段。")
+            print(f"[{time.strftime('%H:%M:%S')}] 未能获取当前学期动态API路径段。")
             return None
         dynamic_path_segment = match.group(1)
         dynamic_grades_api_url = f"{BASE_URL}/student/integratedQuery/scoreQuery/{dynamic_path_segment}/thisTermScores/data"
-        print(f"[{time.strftime('%H:%M:%S')}] 构建动态成绩API URL: {dynamic_grades_api_url}")
+        print(f"[{time.strftime('%H:%M:%S')}] 构建动态当前学期成绩API URL: {dynamic_grades_api_url}")
         headers = { "Referer": GRADES_INDEX_PAGE_URL, "X-Requested-With": "XMLHttpRequest" }
         response_grades_data = session.get(dynamic_grades_api_url, headers=headers, timeout=15)
         response_grades_data.raise_for_status()
         grades_data = response_grades_data.json()
-        print(f"[{time.strftime('%H:%M:%S')}] 成绩获取成功。")
+        print(f"[{time.strftime('%H:%M:%S')}] 当前学期成绩获取成功。")
         return grades_data
     except Exception as e:
-        print(f"[{time.strftime('%H:%M:%S')}] 获取成绩数据时发生错误: {e}")
+        print(f"[{time.strftime('%H:%M:%S')}] 获取当前学期成绩数据时发生错误: {e}")
         return None

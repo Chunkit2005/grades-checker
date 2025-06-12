@@ -64,34 +64,34 @@
                 </div>
             </header>
 
-            <!-- [重构后] 数据概览网格 -->
+            <!-- 数据概览网格 [已修改标签] -->
             <div class="summary-grid">
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-icon-wrapper pass"><i class="icon check"></i></div>
                         <span class="stat-label">本学期通过</span>
                     </div>
-                    <span class="stat-value" id="passedCoursesCount">0</span>
+                    <span class="stat-value" id="currentTermPassed">0</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-icon-wrapper taken"><i class="icon book"></i></div>
-                        <span class="stat-label">成绩公布进度</span>
+                        <span class="stat-label">本学期进度</span>
                     </div>
-                    <span class="stat-value" id="takenCoursesCount">0/0</span>
+                    <span class="stat-value" id="currentTermProgress">0/0</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-icon-wrapper gpa"><i class="icon chart"></i></div>
-                        <span class="stat-label">平均学分绩</span>
+                        <span class="stat-label">总平均绩点</span>
                     </div>
                     <span class="stat-value" id="overallGpaValue">N/A</span>
                 </div>
             </div>
 
-            <!-- 成绩列表输出容器 -->
-            <div id="gradesOutput" class="grades-list">
-                <!-- 成绩项将由 JS 动态插入 -->
+            <!-- [全新] 统一的成绩列表容器 -->
+            <div id="all-grades-container" class="grades-list-container">
+                <!-- 所有学期成绩将由 JS 动态插入 -->
             </div>
             
             <!-- 页脚免责声明 -->
