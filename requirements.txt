@@ -1,7 +1,7 @@
-# requirements.txt (全新版本)
+# requirements.txt (最终修正版)
 
 Flask
 requests
-ddddocr==1.6.0
+ddddocr
 Pillow
 gunicorn
