@@ -1,7 +1,9 @@
-# requirements.txt (最终修正版)
+# requirements.txt (Final Version)
 
 Flask
 requests
 ddddocr
 Pillow
 gunicorn
+beautifulsoup4
+lxml
